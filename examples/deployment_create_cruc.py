@@ -1,15 +1,17 @@
 import datetime
 import pytz
+import os,sys
 from kubernetes import client, config
 
-DEPLOYMENT_NAME = "nginx-deployment"
+#DEPLOYMENT_NAME = "nginx-deployment"
+#os.system("python3 deployment_create_crud.py arg1 arg2")
 
 def create_deployment_object():
     # Configureate Pod template container
     container = client.V1Container(
-        name="nginx",
-        image="nginx:1.15.4",
-        ports=[client.V1ContainerPort(container_port=80)],
+        name=sys.argv[1],
+        image=sys.argv[2],
+        ports=[client.V1ContainerPort(container_port=8888)],
         resources=client.V1ResourceRequirements(
             requests={"cpu": "100m", "memory": "200Mi"},
             limits={"cpu": "500m", "memory": "500Mi"},
@@ -24,7 +26,7 @@ def create_deployment_object():
 
     # Create the specification of deployment
     spec = client.V1DeploymentSpec(
-        replicas=3, template=template, selector={
+        replicas=1, template=template, selector={
             "matchLabels":
             {"app": "nginx"}})
 
@@ -32,7 +34,7 @@ def create_deployment_object():
     deployment = client.V1Deployment(
         api_version="apps/v1",
         kind="Deployment",
-        metadata=client.V1ObjectMeta(name=DEPLOYMENT_NAME),
+        metadata=client.V1ObjectMeta(name=sys.argv[1]),
         spec=spec,
     )
 
@@ -46,14 +48,15 @@ def create_deployment(api, deployment):
     )
 
     print("\n[INFO] deployment `nginx-deployment` created.\n")
-    print("%s\t%s\t\t\t%s\t%s" % ("NAMESPACE", "NAME", "REVISION", "IMAGE"))
+    print("%s\t%s\t\t%s\t%s" % ("NAMESPACE", "NAME", "REVISION", "IMAGE"))
     print(
-        "%s\t\t%s\t%s\t\t%s\n"
+        "%s\t\t%s\t\t%s\t\t%s\n"
         % (
             resp.metadata.namespace,
             resp.metadata.name,
             resp.metadata.generation,
-            resp.spec.template.spec.containers[0].image,
+            sys.argv[2]
+            #resp.spec.template.spec.containers[0].image,
         )
     )
 
